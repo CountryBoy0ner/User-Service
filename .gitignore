@@ -1,0 +1,66 @@
+### Maven ###
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# IntelliJ specific files
+out/
+.idea_modules/
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+logs/
+*.log
+*.log.*
+hs_err_pid*
+replay_pid*
+
+### OS files ###
+.DS_Store
+Thumbs.db
+
+### Build tools ###
+/build/
+/dist/
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+### Liquibase temporary files ###
+*.lock
+*.bak
+
+### Misc ###
+HELP.md
+.mvn/wrapper/maven-wrapper.jar
+!/.mvn/wrapper/maven-wrapper.properties
+
+# Environment / local configs
+.env
+*.env
+
+# Java-specific
+*.class
+*.jar
+*.war
+*.ear
+*.db
+
+### Exclude JetBrains project metadata ###
+/*.idea/
+**/.idea/**
