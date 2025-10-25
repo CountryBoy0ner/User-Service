@@ -2,11 +2,14 @@ package com.innowise.userservice.service;
 
 import com.innowise.userservice.DTO.CardDto;
 import com.innowise.userservice.DTO.CardMapper;
+import com.innowise.userservice.exception.type.ConflictException;
+import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.repository.CardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,14 +31,14 @@ public class CardServiceImpl implements CardService {
     public CardDto getByNumber(String number) {
         return cardRepository.findByNumber(number)
                 .map(cardMapper::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Card not found by number: " + number));
+                .orElseThrow(() -> NotFoundException.of("Card", "number", number));
     }
 
     @Override
     public CardDto getById(Long id) {
         return cardRepository.findById(id)
                 .map(cardMapper::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Card not found by id: " + id));
+                .orElseThrow(() -> NotFoundException.of("Card", "id", id));
     }
 
     @Override
@@ -47,7 +50,7 @@ public class CardServiceImpl implements CardService {
             Card saved = cardRepository.save(entity);
             return cardMapper.toDto(saved);
         } catch (DataIntegrityViolationException e) { //todo
-            throw e; // throw new DuplicateCardException("Card number already exists");
+            throw new ConflictException(" Already have this Card");
         }
 
     }
@@ -59,11 +62,13 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!cardRepository.existsById(id)) {
-            throw new EntityNotFoundException("Card not found by id: " + id);
+        try {
+            cardRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw NotFoundException.of("Card", "id", id);
         }
-        cardRepository.deleteById(id);
     }
+
 
     @Override
     public Page<CardDto> findByHolder(String holder, Pageable pageable) {
@@ -82,7 +87,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public CardDto updateBasicInfo(Long id, String holder, LocalDate expirationDate) {
         Card card = cardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Card not found by id: " + id));
+                .orElseThrow(() -> NotFoundException.of("Card", "id", id));
         card.setHolder(holder);
         card.setExpirationDate(expirationDate);
         return cardMapper.toDto(cardRepository.save(card));
@@ -92,7 +97,8 @@ public class CardServiceImpl implements CardService {
     public void deleteByNumber(String number) {
         long deleted = cardRepository.deleteByNumber(number);
         if (deleted == 0) {
-            throw new EntityNotFoundException("Card not found by number: " + number);
+            throw NotFoundException.of("Card", "number", number);
+
         }
     }
 

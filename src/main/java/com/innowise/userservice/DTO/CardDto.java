@@ -10,20 +10,20 @@ import lombok.Data;
 import java.time.LocalDate;
 @Data
 public class CardDto {
-
     private Long id;
 
-    @NotBlank(message = "Card number is required")
-    @Size(min = 12, max = 19, message = "Card number length must be 12..19")//todo
+    @NotBlank(message = "Card number is required", groups = ValidationGroups.OnCreate.class)
+    @Size(min = 12, max = 19, message = "Card number length must be 12..19", groups = ValidationGroups.OnCreate.class)
     private String number;
 
-    @NotBlank(message = "Card holder is required")
+    @NotBlank(message = "Card holder is required",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdateBasicInfo.class})
     private String holder;
 
-    @Future(message = "Expiration date must be in the future")
+    @Future(message = "Expiration date must be in the future",
+            groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdateBasicInfo.class})
     private LocalDate expirationDate;
 
-    @NotNull(message = "userId is required")
+    @NotNull(message = "userId is required", groups = ValidationGroups.OnCreate.class)
     private Long userId;
-
 }

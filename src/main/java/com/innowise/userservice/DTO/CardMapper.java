@@ -4,12 +4,10 @@ import com.innowise.userservice.model.Card;
 import com.innowise.userservice.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface CardMapper {
-    //CardMapper INSTANCE = Mappers.getMapper(CardMapper.class);
 
     @Mapping(target = "userId", source = "user.id")
     CardDto toDto(Card entity);
