@@ -1,12 +1,6 @@
 package com.innowise.userservice.service;
 
 import com.innowise.userservice.DTO.CardDto;
-import com.innowise.userservice.DTO.CardMapper;
-import com.innowise.userservice.model.Card;
-import com.innowise.userservice.repository.CardRepository;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

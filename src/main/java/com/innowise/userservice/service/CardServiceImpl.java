@@ -6,7 +6,6 @@ import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.repository.CardRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;

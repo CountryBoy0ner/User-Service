@@ -13,23 +13,18 @@ import org.springframework.data.jpa.repository.*;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    //Named
     Optional<User> findByEmail(String email);
 
-    // JPQL
     @Query("SELECT u FROM User u WHERE u.name LIKE %:name% ORDER BY u.surname ASC")
     List<User> searchUsersByName(@Param("name") String name);
 
-    // JPQL
     @Query(value = "SELECT * FROM users u JOIN card_info c ON u.id = c.user_id WHERE c.number = :number", nativeQuery = true)
     Optional<User> findUserByCardNumber(@Param("number") String number);
 
-    // JPQL
     @Query("SELECT u FROM User u")
     Page<User> findAllUsers(Pageable pageable);
 
-    //JPQL
-    @Modifying(clearAutomatically = true) //todo for tests
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE User u SET u.name = :name, u.surname = :surname, u.email = :email WHERE u.id = :id")
     int updateUserInfo(@Param("id") Long id,
                        @Param("name") String name,
@@ -37,13 +32,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                        @Param("email") String email);
 
 
-    // Native SQL
     @Modifying
     @Query(value = "DELETE FROM users WHERE email = :email", nativeQuery = true)
     int deleteUserByEmail(@Param("email") String email);
 
-    // built-in:
-    // save(User user)
-    // deleteById(Long id)
 
 }

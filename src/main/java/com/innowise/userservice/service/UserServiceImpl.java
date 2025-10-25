@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
         }
         userMapper.updateEntity(patch, entity);
         try {
-            User saved = userRepo.save(entity); // можно опустить — JPA и так dirty-check сделает
+            User saved = userRepo.save(entity);
             return userMapper.toDto(saved);
         } catch (DataIntegrityViolationException ex) {
             throw new ConflictException("User update violates database constraints (likely duplicate email)");
@@ -80,7 +80,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> getAll(Pageable pageable) {
-        // Оставляю как у тебя — кастомный запрос репозитория
         return userRepo.findAllUsers(pageable);
     }
 

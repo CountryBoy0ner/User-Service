@@ -27,5 +27,4 @@ public interface CardRepository extends JpaRepository<Card, Long> {
                        @Param("expirationDate") String expirationDate);
 
     long deleteByNumber(String number);
-    //BeanPostProcessor postProcessor();
 }
