@@ -5,9 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
 
-    <!-- Пустой changelog, ничего не делает -->
     <changeSet id="init-empty" author="you">
-        <!-- нет никаких изменений -->
     </changeSet>
 
 </databaseChangeLog>
