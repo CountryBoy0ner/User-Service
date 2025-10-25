@@ -1,0 +1,1032 @@
+{
+  "info": {
+    "name": "UserService API Tests",
+    "_postman_id": "c3a2d2b0-8f1e-4a3e-9b07-UsersCards",
+    "description": "Comprehensive Postman tests for /api/users and /api/cards with ready JSON bodies and status checks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John\",\n  \"surname\": \"Doe\",\n  \"birthDate\": \"{{pastDate}}\",\n  \"email\": \"john.doe{{$randomInt}}@mail.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "// Set useful date variables",
+                  "const now = new Date();",
+                  "pm.environment.set(\"today\", new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10));",
+                  "pm.environment.set(\"futureDate\", new Date(now.getFullYear()+2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  "pm.environment.set(\"pastDate\", new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.code === 201);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('id');",
+                  "pm.environment.set('userId', json.id);",
+                  "pm.environment.set('userEmail', json.email);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Patch User (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"surname\": \"Doe Jr\",\n  \"email\": \"john.updated{{$randomInt}}@mail.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Users Page (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?page=0&size=2&sort=id,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users?page=0&size=2&sort=id,desc"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete User by Email (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/by-email?email={{userEmail}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "by-email?email={{userEmail}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 204\", () => pm.response.code === 204);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Deleted User by ID (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.code === 404);",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cards",
+      "item": [
+        {
+          "name": "Create Card (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4111111111111111\",\n  \"holder\": \"JOHN DOE\",\n  \"expirationDate\": \"{{futureDate}}\",\n  \"userId\": \"{{userId}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "// Set useful date variables",
+                  "const now = new Date();",
+                  "pm.environment.set(\"today\", new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10));",
+                  "pm.environment.set(\"futureDate\", new Date(now.getFullYear()+2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  "pm.environment.set(\"pastDate\", new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 201\", () => pm.response.code === 201);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  "const card = pm.response.json();",
+                  "pm.expect(card).to.have.property('id');",
+                  "pm.environment.set('cardId', card.id);",
+                  "pm.environment.set('cardNumber', card.number);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Card by ID (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/{{cardId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "{{cardId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Card by Number (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/by-number/{{cardNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "by-number",
+                "{{cardNumber}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Card Basic Info (PATCH 200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/{{cardId}}/basic-info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "{{cardId}}",
+                "basic-info"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holder\": \"JANE DOE\",\n  \"expirationDate\": \"{{futureDate}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Find Cards by Holder (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/by-holder?holder=JANE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "by-holder?holder=JANE"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Cards Page (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards?page=0&size=5&sort=id,asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards?page=0&size=5&sort=id,asc"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Cards by User (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/by-user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "by-user",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 200\", () => pm.response.code === 200);",
+                  "pm.test(\"Content-Type is JSON\", () => pm.response.headers.get('Content-Type').includes('application/json'));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Card by Number (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/by-number/{{cardNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "by-number",
+                "{{cardNumber}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 204\", () => pm.response.code === 204);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Card by Number AGAIN (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/by-number/{{cardNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "by-number",
+                "{{cardNumber}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.code === 404);",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Negative - Users",
+      "item": [
+        {
+          "name": "Create User - missing name (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"surname\": \"Doe\",\n  \"birthDate\": \"{{pastDate}}\",\n  \"email\": \"badname{{$randomInt}}@mail.com\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "// Set useful date variables",
+                  "const now = new Date();",
+                  "pm.environment.set(\"today\", new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10));",
+                  "pm.environment.set(\"futureDate\", new Date(now.getFullYear()+2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  "pm.environment.set(\"pastDate\", new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.code === 400);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Patch User - invalid email (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"not-an-email\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.code === 400);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete User - not found (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "999999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.code === 404);",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Negative - Cards",
+      "item": [
+        {
+          "name": "Create Card - past expiration (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4111111111112222\",\n  \"holder\": \"PAST HOLDER\",\n  \"expirationDate\": \"{{pastDate}}\",\n  \"userId\": \"{{userId}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "// Set useful date variables",
+                  "const now = new Date();",
+                  "pm.environment.set(\"today\", new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10));",
+                  "pm.environment.set(\"futureDate\", new Date(now.getFullYear()+2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  "pm.environment.set(\"pastDate\", new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.code === 400);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Card - duplicate number (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4111111111111111\",\n  \"holder\": \"JOHN DOE\",\n  \"expirationDate\": \"{{futureDate}}\",\n  \"userId\": \"{{userId}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "// Set useful date variables",
+                  "const now = new Date();",
+                  "pm.environment.set(\"today\", new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10));",
+                  "pm.environment.set(\"futureDate\", new Date(now.getFullYear()+2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  "pm.environment.set(\"pastDate\", new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 409\", () => pm.response.code === 409);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Card by Number - invalid length (400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/by-number/123",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "by-number",
+                "123"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.code === 400);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Card Basic Info - blank holder (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/{{cardId}}/basic-info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "{{cardId}}",
+                "basic-info"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holder\": \" \",\n  \"expirationDate\": \"{{futureDate}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "// Set useful date variables",
+                  "const now = new Date();",
+                  "pm.environment.set(\"today\", new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10));",
+                  "pm.environment.set(\"futureDate\", new Date(now.getFullYear()+2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  "pm.environment.set(\"pastDate\", new Date(now.getFullYear()-2, now.getMonth(), now.getDate()).toISOString().slice(0,10));",
+                  ""
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 400\", () => pm.response.code === 400);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Card by ID - not found (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cards/99999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cards",
+                "99999999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Status 404\", () => pm.response.code === 404);",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
