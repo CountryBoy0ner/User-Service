@@ -5,13 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
+
+
 
     Optional<Card> findByNumber(String number);
 
@@ -27,4 +27,5 @@ public interface CardRepository extends JpaRepository<Card, Long> {
                        @Param("expirationDate") String expirationDate);
 
     long deleteByNumber(String number);
+    //BeanPostProcessor postProcessor();
 }

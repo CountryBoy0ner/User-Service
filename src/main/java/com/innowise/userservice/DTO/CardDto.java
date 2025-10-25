@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.springframework.lang.NonNull;
+
 
 import java.time.LocalDate;
 @Data
@@ -25,4 +25,5 @@ public class CardDto {
 
     @NotNull(message = "userId is required")
     private Long userId;
+
 }
