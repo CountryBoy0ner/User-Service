@@ -33,7 +33,6 @@
         </createIndex>
     </changeSet>
 
-    <!-- 2️⃣ Создаём таблицу card_info, если её нет -->
     <changeSet id="2-create-card-info-table" author="suzukie">
         <preConditions onFail="MARK_RAN" onError="MARK_RAN">
             <not>

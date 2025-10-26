@@ -1,4 +1,4 @@
-package com.innowise.userservice.DTO;
+package com.innowise.userservice.dto;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;

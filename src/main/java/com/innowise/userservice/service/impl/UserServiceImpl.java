@@ -1,4 +1,4 @@
-package com.innowise.userservice.service;
+package com.innowise.userservice.service.impl;
 
 import com.innowise.userservice.dto.UserDto;
 import com.innowise.userservice.dto.UserMapper;
@@ -7,7 +7,13 @@ import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.User;
 import com.innowise.userservice.repository.UserRepository;
+import com.innowise.userservice.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
@@ -17,12 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
+@CacheConfig(cacheNames = "users")
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepo;
     private final UserMapper userMapper;
 
+    //todo
     @Override
     @Transactional
     public UserDto create(UserDto dto) {
@@ -37,6 +45,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(
+            put = {
+                    @CachePut(key = "#id")
+            },
+            evict = {
+                    @CacheEvict(cacheNames = "userLists", allEntries = true)
+            }
+    )
     public UserDto patch(Long id, UserDto patch) {
         User entity = userRepo.findById(id)
                 .orElseThrow(() -> NotFoundException.of("User", "id", id));
@@ -54,6 +70,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(key = "#id"),
+            @CacheEvict(cacheNames = "userLists", allEntries = true)
+    })
     public void delete(Long id) {
         try {
             userRepo.deleteById(id);
@@ -64,6 +84,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "users", allEntries = true),
+            @CacheEvict(cacheNames = "userLists", allEntries = true)
+    })
     public void deleteByEmail(String email) {
         int affected = userRepo.deleteUserByEmail(email);
         if (affected == 0) {
@@ -72,6 +96,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(key = "#id")
     public UserDto get(Long id) {
         return userRepo.findById(id)
                 .map(userMapper::toDto)
@@ -79,6 +104,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(cacheNames = "userLists", key = "'p=' + #pageable.pageNumber + ':s=' + #pageable.pageSize + ':sort=' + #pageable.sort")
     public Page<User> getAll(Pageable pageable) {
         return userRepo.findAllUsers(pageable);
     }

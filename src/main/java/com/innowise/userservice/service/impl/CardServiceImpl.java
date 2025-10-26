@@ -1,4 +1,4 @@
-package com.innowise.userservice.service;
+package com.innowise.userservice.service.impl;
 
 import com.innowise.userservice.dto.CardDto;
 import com.innowise.userservice.dto.CardMapper;
@@ -6,10 +6,9 @@ import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.repository.CardRepository;
+import com.innowise.userservice.service.CardService;
 import lombok.AllArgsConstructor;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.annotation.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
@@ -23,14 +22,15 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-@CacheConfig(cacheNames = "users")
+@CacheConfig(cacheNames = "cards")
 @Transactional(readOnly = true)
 public class CardServiceImpl implements CardService {
 
     private CardRepository cardRepository;
     private CardMapper cardMapper;
+    //private final org.springframework.config.CacheManager cacheManager;
 
-    //@Cacheable(cacheNames = "cardsByNumber", key = "#number", unless = "#result == null")
+    @Cacheable(cacheNames = "cardsByNumber", key = "#number")
     @Override
     public CardDto getByNumber(String number) {
         return cardRepository.findByNumber(number)
@@ -38,7 +38,7 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> NotFoundException.of("Card", "number", number));
     }
 
-    //@Cacheable(key = "#id", unless = "#result == null")
+    @Cacheable(key = "#id", unless = "#result == null")
     @Override
     public CardDto getById(Long id) {
         return cardRepository.findById(id)
@@ -60,8 +60,8 @@ public class CardServiceImpl implements CardService {
 
     }
 
-    //@Cacheable(cacheNames = "cardLists",
-    //        key = "'page=' + #pageable.pageNumber + ':size=' + #pageable.pageSize + ':sort=' + #pageable.sort")
+    @Cacheable(cacheNames = "cardLists",
+            key = "'page=' + #pageable.pageNumber + ':size=' + #pageable.pageSize + ':sort=' + #pageable.sort")
     @Override
     public Page<CardDto> getAll(Pageable pageable) {
         return cardRepository.findAll(pageable).map(cardMapper::toDto);
@@ -69,11 +69,11 @@ public class CardServiceImpl implements CardService {
 
 
 
-    //@Caching(evict = {
-    //        @CacheEvict(key = "#id"),
-    //        @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
-    //        @CacheEvict(cacheNames = "cardLists", allEntries = true)
-    //})
+    @Caching(evict = {
+            @CacheEvict(key = "#id"),
+            @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+            @CacheEvict(cacheNames = "cardLists", allEntries = true)
+    })
     @Override
     @Transactional
     public void delete(Long id) {
@@ -84,13 +84,19 @@ public class CardServiceImpl implements CardService {
         }
     }
 
-
+    @Cacheable(
+            cacheNames = "cardsByHolder",
+            key = "'holder=' + #holder?.toLowerCase() + ':p=' + #pageable.pageNumber + ':s=' + #pageable.pageSize + ':sort=' + #pageable.sort"
+    )
     @Override
     public Page<CardDto> findByHolder(String holder, Pageable pageable) {
         return cardRepository.findByHolderContainingIgnoreCase(holder, pageable)
                 .map(cardMapper::toDto);
     }
 
+
+
+    @Cacheable(cacheNames = "cardsByUser", key = "#userId")
     @Override
     public List<CardDto> findAllByUserId(Long userId) {
         return cardRepository.findAllByUserIdNative(userId).stream()
@@ -98,6 +104,17 @@ public class CardServiceImpl implements CardService {
                 .toList();
     }
 
+
+    @Caching(
+            put = {
+                    @CachePut(key = "#id") // обновит cards::<id> на возвращаемый DTO
+            },
+            evict = {
+                    @CacheEvict(cacheNames = "cardLists", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsByHolder", allEntries = true),
+                    @CacheEvict(cacheNames = "cardsByUser", allEntries = true)
+            }
+    )
     @Override
     @Transactional
     public CardDto updateBasicInfo(Long id, String holder, LocalDate expirationDate) {

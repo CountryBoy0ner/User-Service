@@ -1,8 +1,9 @@
 package com.innowise.userservice.controller;
 
-import com.innowise.userservice.DTO.CardDto;
-import com.innowise.userservice.DTO.ValidationGroups;
+import com.innowise.userservice.dto.CardDto;
+import com.innowise.userservice.dto.ValidationGroups;
 import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.service.impl.CardServiceImpl;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.innowise.userservice.DTO;
+package com.innowise.userservice.dto;
 
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.model.User;

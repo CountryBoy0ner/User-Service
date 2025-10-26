@@ -1,9 +1,9 @@
 package com.innowise.userservice.controller;
 
-import com.innowise.userservice.DTO.CardDto;
-import com.innowise.userservice.DTO.UserDto;
-import com.innowise.userservice.DTO.UserMapper;
-import com.innowise.userservice.DTO.ValidationGroups;
+import com.innowise.userservice.dto.CardDto;
+import com.innowise.userservice.dto.UserDto;
+import com.innowise.userservice.dto.UserMapper;
+import com.innowise.userservice.dto.ValidationGroups;
 import com.innowise.userservice.service.CardService;
 import com.innowise.userservice.service.UserService;
 import jakarta.validation.constraints.Email;
