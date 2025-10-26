@@ -1,7 +1,7 @@
 package com.innowise.userservice.service;
 
-import com.innowise.userservice.DTO.UserDto;
-import com.innowise.userservice.DTO.UserMapper;
+import com.innowise.userservice.dto.UserDto;
+import com.innowise.userservice.dto.UserMapper;
 import com.innowise.userservice.exception.type.BadRequestException;
 import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;

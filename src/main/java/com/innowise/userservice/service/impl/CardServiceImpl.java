@@ -1,12 +1,15 @@
 package com.innowise.userservice.service;
 
-import com.innowise.userservice.DTO.CardDto;
-import com.innowise.userservice.DTO.CardMapper;
+import com.innowise.userservice.dto.CardDto;
+import com.innowise.userservice.dto.CardMapper;
 import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.repository.CardRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
@@ -20,12 +23,14 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@CacheConfig(cacheNames = "users")
 @Transactional(readOnly = true)
 public class CardServiceImpl implements CardService {
 
     private CardRepository cardRepository;
     private CardMapper cardMapper;
 
+    //@Cacheable(cacheNames = "cardsByNumber", key = "#number", unless = "#result == null")
     @Override
     public CardDto getByNumber(String number) {
         return cardRepository.findByNumber(number)
@@ -33,6 +38,7 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> NotFoundException.of("Card", "number", number));
     }
 
+    //@Cacheable(key = "#id", unless = "#result == null")
     @Override
     public CardDto getById(Long id) {
         return cardRepository.findById(id)
@@ -53,11 +59,21 @@ public class CardServiceImpl implements CardService {
         }
 
     }
+
+    //@Cacheable(cacheNames = "cardLists",
+    //        key = "'page=' + #pageable.pageNumber + ':size=' + #pageable.pageSize + ':sort=' + #pageable.sort")
     @Override
     public Page<CardDto> getAll(Pageable pageable) {
         return cardRepository.findAll(pageable).map(cardMapper::toDto);
     }
 
+
+
+    //@Caching(evict = {
+    //        @CacheEvict(key = "#id"),
+    //        @CacheEvict(cacheNames = "cardsByNumber", allEntries = true),
+    //        @CacheEvict(cacheNames = "cardLists", allEntries = true)
+    //})
     @Override
     @Transactional
     public void delete(Long id) {
@@ -91,8 +107,13 @@ public class CardServiceImpl implements CardService {
         card.setExpirationDate(expirationDate);
         return cardMapper.toDto(cardRepository.save(card));
     }
-    @Override
+
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardsByNumber", key = "#number"),
+            @CacheEvict(cacheNames = "cardLists", allEntries = true)
+    })
+    @Override
     public void deleteByNumber(String number) {
         long deleted = cardRepository.deleteByNumber(number);
         if (deleted == 0) {
@@ -100,6 +121,4 @@ public class CardServiceImpl implements CardService {
 
         }
     }
-
-
 }
