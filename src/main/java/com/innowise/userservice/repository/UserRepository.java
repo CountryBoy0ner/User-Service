@@ -6,8 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.data.jpa.repository.*;
 
 
@@ -18,8 +20,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.name LIKE %:name% ORDER BY u.surname ASC")
     List<User> searchUsersByName(@Param("name") String name);
 
-    @Query(value = "SELECT * FROM users u JOIN card_info c ON u.id = c.user_id WHERE c.number = :number", nativeQuery = true)
+    @Query(
+            value = "SELECT u.* FROM users u JOIN card_info c ON u.id = c.user_id WHERE c.number = :number",
+            nativeQuery = true
+    )
     Optional<User> findUserByCardNumber(@Param("number") String number);
+
 
     @Query("SELECT u FROM User u")
     Page<User> findAllUsers(Pageable pageable);

@@ -6,12 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
+
 import java.util.List;
 import java.util.Optional;
 
 public interface CardRepository extends JpaRepository<Card, Long> {
-
-
 
     Optional<Card> findByNumber(String number);
 
@@ -21,10 +20,21 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> findAllByUserIdNative(@Param("userId") Long userId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE Card c SET c.holder = :holder, c.expirationDate = :expirationDate WHERE c.id = :id")
+    @Query(value = """
+            UPDATE card_info
+               SET holder = :holder,
+                   expiration_date = to_date(:expirationDate, 'YYYY-MM-DD')
+             WHERE id = :id
+            """, nativeQuery = true)
     int updateCardInfo(@Param("id") Long id,
                        @Param("holder") String holder,
                        @Param("expirationDate") String expirationDate);
 
-    long deleteByNumber(String number);
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Card c WHERE c.number = :number")
+    int deleteByNumberInternal(@Param("number") String number);
+
+    default long deleteByNumber(String number) {
+        return (long) deleteByNumberInternal(number);
+    }
 }
