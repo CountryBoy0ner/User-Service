@@ -6,45 +6,60 @@ on:
   pull_request:
     branches: ["**"]
 
-permissions:
-  contents: read
-  packages: write
-
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   JAVA_VERSION: "17"
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
-  build-test-and-image:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build (no tests)
+        run: mvn -B -DskipTests=true clean package
+
+      - name: Upload jar
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-from-build
+          path: target/*.jar
+          if-no-files-found: warn
+
+  test:
+    needs: build
     runs-on: ubuntu-latest
 
     services:
       postgres:
         image: postgres:16-alpine
-        ports:
-          - 5432:5432
+        ports: [ "5432:5432" ]
         env:
           POSTGRES_DB: user_service
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: 123
         options: >-
           --health-cmd="pg_isready -U postgres -d user_service"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
+          --health-interval=10s --health-timeout=5s --health-retries=10
+
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
+        ports: [ "6379:6379" ]
         options: >-
           --health-cmd="redis-cli ping || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
+          --health-interval=10s --health-timeout=5s --health-retries=10
 
     steps:
       - name: Checkout
@@ -56,11 +71,13 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
+
       - name: Wait for Postgres & Redis
         run: |
           for i in {1..60}; do (echo > /dev/tcp/127.0.0.1/5432) && break; echo "waiting for postgres..."; sleep 2; done
           for i in {1..60}; do (echo > /dev/tcp/127.0.0.1/6379) && break; echo "waiting for redis..."; sleep 2; done
-      - name: Build & Test (unit + integration)
+
+      - name: Tests (unit + integration)
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/user_service
           SPRING_DATASOURCE_USERNAME: postgres
@@ -68,35 +85,14 @@ jobs:
           SPRING_DATA_REDIS_HOST: localhost
           SPRING_DATA_REDIS_PORT: 6379
         run: mvn -B clean verify
-      # <<<
 
-      - name: Upload test reports & JAR
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: maven-reports
           path: |
             target/surefire-reports/**
             target/failsafe-reports/**
             target/site/jacoco/jacoco.xml
-            target/*.jar
           if-no-files-found: warn
-
-      - name: Log in to GHCR
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build (and maybe push) Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
