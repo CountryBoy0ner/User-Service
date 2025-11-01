@@ -1,7 +1,19 @@
-FROM redis:7-alpine
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
 
-VOLUME ["/data"]
+COPY pom.xml .
+RUN mvn -q -B -DskipTests dependency:go-offline
 
-ENV REDIS_PASSWORD=""
+COPY src ./src
+RUN mvn -q -B -DskipTests package
 
-CMD ["/bin/sh", "-c", "exec redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}"]
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+COPY --from=build /app/target/*-SNAPSHOT.jar /app/app.jar
+
+ENV JAVA_OPTS=""
+
+ENV SERVER_PORT=8080
+
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
