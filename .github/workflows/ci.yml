@@ -22,6 +22,30 @@ jobs:
   build-test-and-image:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: user_service
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 123
+        options: >-
+          --health-cmd="pg_isready -U postgres -d user_service"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,9 +56,19 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
-
+      - name: Wait for Postgres & Redis
+        run: |
+          for i in {1..60}; do (echo > /dev/tcp/127.0.0.1/5432) && break; echo "waiting for postgres..."; sleep 2; done
+          for i in {1..60}; do (echo > /dev/tcp/127.0.0.1/6379) && break; echo "waiting for redis..."; sleep 2; done
       - name: Build & Test (unit + integration)
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/user_service
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: 123
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
         run: mvn -B clean verify
+      # <<<
 
       - name: Upload test reports & JAR
         if: always()
