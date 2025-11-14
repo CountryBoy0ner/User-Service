@@ -19,5 +19,8 @@ public interface UserService {
     public UserDto get(Long id);
 
     public Page<User> getAll(Pageable pageable);
+
+    public UserDto getByEmail(String email);
+
 }
 

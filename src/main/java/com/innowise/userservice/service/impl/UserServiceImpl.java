@@ -8,6 +8,7 @@ import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.User;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -108,6 +109,16 @@ public class UserServiceImpl implements UserService {
     public Page<User> getAll(Pageable pageable) {
         return userRepo.findAllUsers(pageable);
     }
+
+    @Transactional
+    @Override
+    public UserDto getByEmail(String email) {
+        return userRepo.findByEmail(email)
+                .map(userMapper::toDto)
+                .orElseThrow(() ->
+                        new NotFoundException("User not found with email: " + email));
+    }
+
 
     private boolean patchIsEmpty(UserDto patch) {
         return patch.getName() == null

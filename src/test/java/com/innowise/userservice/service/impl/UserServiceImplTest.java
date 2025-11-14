@@ -210,4 +210,37 @@ class UserServiceImplTest {
         assertEquals(2, page.getTotalElements());
         assertEquals(List.of(u1, u2), page.getContent());
     }
+
+
+    @Test
+    @DisplayName("getByEmail: returns DTO when user exists")
+    void getByEmail_success() {
+        String email = "x@y.com";
+        User user = mkUser(1L, email);
+        UserDto dto = mkDto(1L, email);
+
+        when(userRepo.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(dto);
+
+        UserDto result = service.getByEmail(email);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals(email, result.getEmail());
+        verify(userRepo).findByEmail(email);
+        verify(userMapper).toDto(user);
+    }
+
+    @Test
+    @DisplayName("getByEmail: throws NotFoundException when user is absent")
+    void getByEmail_notFound() {
+        String email = "none@site.com";
+
+        when(userRepo.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> service.getByEmail(email));
+        verify(userRepo).findByEmail(email);
+        verifyNoInteractions(userMapper);
+    }
+
 }

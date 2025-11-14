@@ -73,4 +73,9 @@ public class UserController {
     public ResponseEntity<List<CardDto>> getUserCards(@PathVariable Long userId) {
         return ResponseEntity.ok(cardService.findAllByUserId(userId));
     }
+
+    @GetMapping("/by-email")
+    public ResponseEntity<UserDto> getByEmail(@RequestParam @NotBlank @Email String email) {
+        return ResponseEntity.ok(userService.getByEmail(email));
+    }
 }
