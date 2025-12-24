@@ -10,6 +10,7 @@ import com.innowise.userservice.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,8 +45,6 @@ class UserControllerWebMvcTest {
     @MockitoBean UserService userService;
     @MockitoBean UserMapper userMapper;
     @MockitoBean CardService cardService;
-
-    // --- helpers
 
     private User mkUser(Long id, String email) {
         User u = new User();
@@ -145,23 +144,24 @@ class UserControllerWebMvcTest {
     }
 
     @Test
-    @DisplayName("GET /api/users -> 200 OK with page of DTOs (service returns Page<User>, controller maps via UserMapper)")
+    @DisplayName("GET /api/users -> 200 OK with page of DTOs (service returns Page<UserDto>)")
     void getAll_ok() throws Exception {
-        Pageable pageable = PageRequest.of(0, 2);
-        User u1 = mkUser(1L, "a@a.com");
-        User u2 = mkUser(2L, "b@b.com");
-        Page<User> page = new PageImpl<>(List.of(u1, u2), pageable, 2);
+        Pageable pageable = PageRequest.of(0, 2); // sort можно не задавать, если не проверяешь его
+        UserDto d1 = mkUserDto(1L, "a@a.com");
+        UserDto d2 = mkUserDto(2L, "b@b.com");
+        Page<UserDto> page = new PageImpl<>(List.of(d1, d2), pageable, 2);
 
         when(userService.getAll(any(Pageable.class))).thenReturn(page);
-        when(userMapper.toDto(u1)).thenReturn(mkUserDto(1L, "a@a.com"));
-        when(userMapper.toDto(u2)).thenReturn(mkUserDto(2L, "b@b.com"));
 
-        mvc.perform(get(BASE).param("page", "0").param("size", "2"))
+        mvc.perform(get(BASE)
+                        .param("page", "0")
+                        .param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.content[0].email").value("a@a.com"))
                 .andExpect(jsonPath("$.content[1].email").value("b@b.com"));
     }
+
 
     @Test
     @DisplayName("GET /api/users/{userId}/cards -> 200 OK with card list")

@@ -199,17 +199,32 @@ class UserServiceImplTest {
     }
 
     @Test
-    @DisplayName("getAll: returns a page of users")
+    @DisplayName("getAll: returns a page of user DTOs")
     void getAll_success() {
         Pageable pageable = PageRequest.of(0, 2);
+
         User u1 = mkUser(1L, "a@a.com");
         User u2 = mkUser(2L, "b@b.com");
-        when(userRepo.findAllUsers(pageable)).thenReturn(new PageImpl<>(List.of(u1, u2), pageable, 2));
 
-        Page<User> page = service.getAll(pageable);
+        when(userRepo.findAllUsers(pageable))
+                .thenReturn(new PageImpl<>(List.of(u1, u2), pageable, 2));
+
+        UserDto d1 = mkDto(1L, "a@a.com");
+        UserDto d2 = mkDto(2L, "b@b.com");
+
+        when(userMapper.toDto(u1)).thenReturn(d1);
+        when(userMapper.toDto(u2)).thenReturn(d2);
+
+        Page<UserDto> page = service.getAll(pageable);
+
         assertEquals(2, page.getTotalElements());
-        assertEquals(List.of(u1, u2), page.getContent());
+        assertEquals(List.of(d1, d2), page.getContent());
+
+        verify(userRepo).findAllUsers(pageable);
+        verify(userMapper).toDto(u1);
+        verify(userMapper).toDto(u2);
     }
+
 
 
     @Test

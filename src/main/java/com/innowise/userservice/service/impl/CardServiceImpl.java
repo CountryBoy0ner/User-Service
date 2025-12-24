@@ -7,6 +7,7 @@ import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.repository.CardRepository;
 import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.service.cache.CardPageCache;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.*;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,7 +29,8 @@ public class CardServiceImpl implements CardService {
 
     private CardRepository cardRepository;
     private CardMapper cardMapper;
-    //private final org.springframework.config.CacheManager cacheManager;
+    private final CardPageCache cardPageCache;
+
 
     @Cacheable(cacheNames = "cardsByNumber", key = "#number")
     @Override
@@ -48,6 +50,11 @@ public class CardServiceImpl implements CardService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "cardLists", allEntries = true),
+            @CacheEvict(cacheNames = "cardsByHolder", allEntries = true),
+            @CacheEvict(cacheNames = "cardsByUser", allEntries = true)
+    })
     public CardDto create(CardDto cardDto) {
         Card entity = cardMapper.toEntity(cardDto);
         entity.setId(null);
@@ -60,13 +67,10 @@ public class CardServiceImpl implements CardService {
 
     }
 
-    @Cacheable(cacheNames = "cardLists",
-            key = "'page=' + #pageable.pageNumber + ':size=' + #pageable.pageSize + ':sort=' + #pageable.sort")
     @Override
     public Page<CardDto> getAll(Pageable pageable) {
-        return cardRepository.findAll(pageable).map(cardMapper::toDto);
+        return cardPageCache.getAllCached(pageable).toPage(pageable);
     }
-
 
 
     @Caching(evict = {
@@ -84,16 +88,11 @@ public class CardServiceImpl implements CardService {
         }
     }
 
-    @Cacheable(
-            cacheNames = "cardsByHolder",
-            key = "'holder=' + #holder?.toLowerCase() + ':p=' + #pageable.pageNumber + ':s=' + #pageable.pageSize + ':sort=' + #pageable.sort"
-    )
+
     @Override
     public Page<CardDto> findByHolder(String holder, Pageable pageable) {
-        return cardRepository.findByHolderContainingIgnoreCase(holder, pageable)
-                .map(cardMapper::toDto);
+        return cardPageCache.findByHolderCached(holder, pageable).toPage(pageable);
     }
-
 
 
     @Cacheable(cacheNames = "cardsByUser", key = "#userId")

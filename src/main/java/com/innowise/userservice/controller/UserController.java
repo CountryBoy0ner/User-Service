@@ -30,17 +30,13 @@ public class UserController {
     private final CardService cardService;
 
     @PostMapping
-    public ResponseEntity<UserDto> create(
-            @Validated(ValidationGroups.OnCreate.class) @RequestBody UserDto dto) {
+    public ResponseEntity<UserDto> create(@Validated(ValidationGroups.OnCreate.class) @RequestBody UserDto dto) {
         UserDto created = userService.create(dto);
-        return ResponseEntity
-                .created(URI.create("/api/users/" + created.getId()))
-                .body(created);
+        return ResponseEntity.created(URI.create("/api/users/" + created.getId())).body(created);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<UserDto> patch(@PathVariable Long id,
-                                         @Validated(ValidationGroups.OnPatch.class) @RequestBody UserDto patch) {
+    public ResponseEntity<UserDto> patch(@PathVariable Long id, @Validated(ValidationGroups.OnPatch.class) @RequestBody UserDto patch) {
         UserDto updated = userService.patch(id, patch);
         return ResponseEntity.ok(updated);
     }
@@ -65,9 +61,9 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAll(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
-        Page<UserDto> page = userService.getAll(pageable).map(userMapper::toDto);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(userService.getAll(pageable));
     }
+
 
     @GetMapping("/{userId}/cards")
     public ResponseEntity<List<CardDto>> getUserCards(@PathVariable Long userId) {

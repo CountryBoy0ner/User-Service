@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.innowise.userservice.service.cache.UserPageCache;
 
 @Service
 @AllArgsConstructor
@@ -30,10 +31,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepo;
     private final UserMapper userMapper;
+    private final UserPageCache userPageCache;
+
 
     //todo
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "userLists", allEntries = true)
     public UserDto create(UserDto dto) {
         User entity = userMapper.toEntity(dto);
         try {
@@ -105,10 +109,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(cacheNames = "userLists", key = "'p=' + #pageable.pageNumber + ':s=' + #pageable.pageSize + ':sort=' + #pageable.sort")
-    public Page<User> getAll(Pageable pageable) {
-        return userRepo.findAllUsers(pageable);
+    public Page<UserDto> getAll(Pageable pageable) {
+        return userPageCache.getAllCached(pageable).toPage(pageable);
     }
+
 
     @Transactional
     @Override
