@@ -6,6 +6,8 @@ import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.Card;
 import com.innowise.userservice.repository.CardRepository;
+import com.innowise.userservice.service.cache.CachedPage;
+import com.innowise.userservice.service.cache.CardPageCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,6 +41,11 @@ class CardServiceImplTest {
 
     @InjectMocks
     private CardServiceImpl service;
+
+
+    @Mock
+    private CardPageCache cardPageCache;
+
 
     private Card card;
     private CardDto dto;
@@ -147,11 +154,6 @@ class CardServiceImplTest {
     @DisplayName("getAll: returns a page of DTOs")
     void getAll_success() {
         Pageable pageable = PageRequest.of(0, 2);
-        Card c2 = new Card();
-        c2.setId(2L);
-        c2.setNumber("5555555555554444");
-        c2.setHolder("Jane Roe");
-        c2.setExpirationDate(LocalDate.of(2031, 12, 31));
 
         CardDto d2 = new CardDto();
         d2.setId(2L);
@@ -160,15 +162,17 @@ class CardServiceImplTest {
         d2.setExpirationDate(LocalDate.of(2031, 12, 31));
         d2.setUserId(11L);
 
-        when(cardRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(card, c2), pageable, 2));
-        when(cardMapper.toDto(card)).thenReturn(dto);
-        when(cardMapper.toDto(c2)).thenReturn(d2);
+        when(cardPageCache.getAllCached(pageable))
+                .thenReturn(new CachedPage<>(List.of(dto, d2), 2));
 
         Page<CardDto> page = service.getAll(pageable);
 
         assertEquals(2, page.getTotalElements());
         assertEquals(List.of(dto, d2), page.getContent());
+        verify(cardPageCache).getAllCached(pageable);
+        verifyNoInteractions(cardRepository, cardMapper);
     }
+
 
     @Test
     @DisplayName("delete: deletes by id")
@@ -189,14 +193,18 @@ class CardServiceImplTest {
     @DisplayName("findByHolder: returns a page of DTOs")
     void findByHolder_success() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(cardRepository.findByHolderContainingIgnoreCase("john", pageable))
-                .thenReturn(new PageImpl<>(List.of(card), pageable, 1));
-        when(cardMapper.toDto(card)).thenReturn(dto);
+
+        when(cardPageCache.findByHolderCached("john", pageable))
+                .thenReturn(new CachedPage<>(List.of(dto), 1));
 
         Page<CardDto> page = service.findByHolder("john", pageable);
+
         assertEquals(1, page.getTotalElements());
         assertEquals(dto, page.getContent().get(0));
+        verify(cardPageCache).findByHolderCached("john", pageable);
+        verifyNoInteractions(cardRepository, cardMapper);
     }
+
 
     @Test
     @DisplayName("findAllByUserId: returns a list of DTOs")

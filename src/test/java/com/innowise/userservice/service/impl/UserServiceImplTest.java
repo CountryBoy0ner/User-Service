@@ -7,6 +7,8 @@ import com.innowise.userservice.exception.type.ConflictException;
 import com.innowise.userservice.exception.type.NotFoundException;
 import com.innowise.userservice.model.User;
 import com.innowise.userservice.repository.UserRepository;
+import com.innowise.userservice.service.cache.CachedPage;
+import com.innowise.userservice.service.cache.UserPageCache;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +40,10 @@ class UserServiceImplTest {
 
     @InjectMocks
     private UserServiceImpl service;
+
+    @Mock
+    private UserPageCache userPageCache;
+
 
     private User mkUser(Long id, String email) {
         User u = new User();
@@ -203,28 +209,19 @@ class UserServiceImplTest {
     void getAll_success() {
         Pageable pageable = PageRequest.of(0, 2);
 
-        User u1 = mkUser(1L, "a@a.com");
-        User u2 = mkUser(2L, "b@b.com");
-
-        when(userRepo.findAllUsers(pageable))
-                .thenReturn(new PageImpl<>(List.of(u1, u2), pageable, 2));
-
         UserDto d1 = mkDto(1L, "a@a.com");
         UserDto d2 = mkDto(2L, "b@b.com");
 
-        when(userMapper.toDto(u1)).thenReturn(d1);
-        when(userMapper.toDto(u2)).thenReturn(d2);
+        when(userPageCache.getAllCached(pageable))
+                .thenReturn(new CachedPage<>(List.of(d1, d2), 2));
 
         Page<UserDto> page = service.getAll(pageable);
 
         assertEquals(2, page.getTotalElements());
         assertEquals(List.of(d1, d2), page.getContent());
-
-        verify(userRepo).findAllUsers(pageable);
-        verify(userMapper).toDto(u1);
-        verify(userMapper).toDto(u2);
+        verify(userPageCache).getAllCached(pageable);
+        verifyNoInteractions(userRepo, userMapper);
     }
-
 
 
     @Test
