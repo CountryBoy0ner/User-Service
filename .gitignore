@@ -64,3 +64,13 @@ HELP.md
 ### Exclude JetBrains project metadata ###
 /*.idea/
 **/.idea/**
+
+# env
+.env
+.env.*
+
+
+
+echo Authentication-Service >> .gitignore
+echo Order-Service >> .gitignore
+echo user-service >> .gitignore
