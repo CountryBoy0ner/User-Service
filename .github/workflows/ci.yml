@@ -8,7 +8,7 @@ on:
       - "Dockerfile"
       - ".github/workflows/ci.yml"
   push:
-    branches: ["main", "develop"]
+    branches: [ "main", "develop" ]
     paths:
       - "src/**"
       - "pom.xml"
@@ -39,7 +39,7 @@ jobs:
     services:
       postgres:
         image: postgres:16-alpine
-        ports: ["5432:5432"]
+        ports: [ "5432:5432" ]
         env:
           POSTGRES_DB: user_service
           POSTGRES_USER: postgres
@@ -50,7 +50,7 @@ jobs:
 
       redis:
         image: redis:7-alpine
-        ports: ["6379:6379"]
+        ports: [ "6379:6379" ]
         options: >-
           --health-cmd="redis-cli ping || exit 1"
           --health-interval=10s --health-timeout=5s --health-retries=10
@@ -71,13 +71,15 @@ jobs:
           pwd
           ls -la
 
+
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
       - name: Show Java & Maven versions
         run: |
           java -version
           ./mvnw -v
-
-      - name: Make mvnw executable
-        run: chmod +x mvnw
 
       - name: Wait for Postgres & Redis
         run: |
