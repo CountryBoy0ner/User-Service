@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SERVICE_DIR: User-Service
+  SERVICE_DIR: .
   JAVA_VERSION: "17"
 
 jobs:
@@ -65,6 +65,11 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
+
+      - name: Debug workspace
+        run: |
+          pwd
+          ls -la
 
       - name: Show Java & Maven versions
         run: |
