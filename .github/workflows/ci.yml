@@ -3,15 +3,17 @@ name: User Service CI/CD
 on:
   pull_request:
     paths:
-      - "User-Service/**"
-      - ".github/workflows/user-ci.yml"
-
+      - "src/**"
+      - "pom.xml"
+      - "Dockerfile"
+      - ".github/workflows/ci.yml"
   push:
     branches: ["main", "develop"]
     paths:
-      - "User-Service/**"
-      - ".github/workflows/user-ci.yml"
-
+      - "src/**"
+      - "pom.xml"
+      - "Dockerfile"
+      - ".github/workflows/ci.yml"
   workflow_dispatch:
 
 permissions:
