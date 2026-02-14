@@ -31,10 +31,13 @@ class UserRepositoryIT {
 
     @Autowired
     private CardRepository cardRepository;
+    private static long idCounter = 1;
+
 
     private User mkUser(String name, String surname, String email) {
         User u = new User();
         u.setName(name);
+        u.setId(generateTestId());
         u.setSurname(surname);
         u.setBirthDate(LocalDate.of(1990, 1, 1));
         u.setEmail(email);
@@ -119,5 +122,9 @@ class UserRepositoryIT {
         int affected = userRepository.deleteUserByEmail("del@mail.com");
         assertEquals(1, affected);
         assertTrue(userRepository.findByEmail("del@mail.com").isEmpty());
+    }
+
+    private synchronized long generateTestId() {
+        return idCounter++;
     }
 }

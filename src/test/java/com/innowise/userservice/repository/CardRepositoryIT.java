@@ -30,9 +30,12 @@ class CardRepositoryIT {
 
     @Autowired
     private UserRepository userRepository;
+    private static long idCounter = 1;
+
 
     private User mkUser(String email) {
         User u = new User();
+        u.setId(generateTestId());
         u.setName("John");
         u.setSurname("Doe");
         u.setBirthDate(LocalDate.of(1990, 1, 1));
@@ -100,7 +103,6 @@ class CardRepositoryIT {
                 mkCard("4000000000000099", "Old Holder", LocalDate.now().plusYears(2), u)
         );
 
-        // Репозиторий принимает expirationDate как String — передадим ISO-дату
         int affected = cardRepository.updateCardInfo(
                 saved.getId(),
                 "New Holder",
@@ -125,5 +127,10 @@ class CardRepositoryIT {
 
         long zero = cardRepository.deleteByNumber("0000");
         assertEquals(0L, zero);
+    }
+
+
+    private synchronized long generateTestId() {
+        return idCounter++;
     }
 }
