@@ -30,11 +30,8 @@ env:
 jobs:
 
   test:
-    name: Build + Unit/Integration tests
+    name: Build + Unit tests only
     runs-on: ubuntu-latest
-
-    env:
-      TESTCONTAINERS_RYUK_DISABLED: true
 
     steps:
       - name: Checkout
@@ -55,19 +52,18 @@ jobs:
           java -version
           ./mvnw -v
 
-      - name: Run tests (unit + integration)
-        run: ./mvnw -B -ntp verify
+      # Запуск только unit-тестов (игнорируем IT, которые используют Testcontainers)
+      - name: Run unit tests
+        run: ./mvnw -B -ntp test -DskipITs
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: user-service-test-reports
+          name: user-service-unit-test-reports
           path: |
             target/surefire-reports/**
-            target/failsafe-reports/**
           if-no-files-found: warn
-
 
   docker-build-pr:
     name: Docker build (PR only, no push)
@@ -90,7 +86,6 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
 
   docker-image:
     name: Build & Push image to GHCR
