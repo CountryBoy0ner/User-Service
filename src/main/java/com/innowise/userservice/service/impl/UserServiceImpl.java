@@ -34,18 +34,23 @@ public class UserServiceImpl implements UserService {
     private final UserPageCache userPageCache;
 
 
-    //todo
     @Override
     @Transactional
     @CacheEvict(cacheNames = "userLists", allEntries = true)
     public UserDto create(UserDto dto) {
-        User entity = userMapper.toEntity(dto);
-        try {
-            User saved = userRepo.save(entity);
-            return userMapper.toDto(saved);
-        } catch (DataIntegrityViolationException ex) {
-            throw new ConflictException("User violates database constraints (likely duplicate email)");
+        if (dto.getId() == null) {
+            throw new IllegalArgumentException("ID must be provided for creation");
         }
+        if (userRepo.existsById(dto.getId())) {
+            throw new IllegalArgumentException("User with this ID already exists");
+        }
+        if (userRepo.findByEmail(dto.getEmail()).isPresent()) {
+            throw new ConflictException("User with this Email already exists");
+        }
+        User user = userMapper.toEntity(dto);
+        user.setId(dto.getId());
+        User saved = userRepo.save(user);
+        return userMapper.toDto(saved);
     }
 
     @Override
@@ -119,8 +124,14 @@ public class UserServiceImpl implements UserService {
     public UserDto getByEmail(String email) {
         return userRepo.findByEmail(email)
                 .map(userMapper::toDto)
-                .orElseThrow(() ->
-                        new NotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> NotFoundException.of("User", "email", email));
+    }
+
+    @Override
+    public UserDto getMe(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> NotFoundException.of("User", "id", id));
+        return userMapper.toDto(user);
     }
 
 

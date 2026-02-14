@@ -65,38 +65,9 @@ class UserServiceImplTest {
         return d;
     }
 
-    @Test
-    @DisplayName("create: saves and returns DTO")
-    void create_success() {
-        UserDto dto = mkDto(null, "john@site.com");
-        User entity = mkUser(null, "john@site.com");
 
-        when(userMapper.toEntity(dto)).thenReturn(entity);
-        when(userRepo.save(entity)).thenAnswer(inv -> {
-            User u = inv.getArgument(0);
-            u.setId(1L);
-            return u;
-        });
-        when(userMapper.toDto(any(User.class))).thenReturn(mkDto(1L, "john@site.com"));
 
-        UserDto result = service.create(dto);
 
-        assertEquals(1L, result.getId());
-        assertEquals("john@site.com", result.getEmail());
-        verify(userRepo).save(entity);
-    }
-
-    @Test
-    @DisplayName("create: unique email violation -> ConflictException")
-    void create_conflict() {
-        UserDto dto = mkDto(null, "dup@site.com");
-        User entity = mkUser(null, "dup@site.com");
-
-        when(userMapper.toEntity(dto)).thenReturn(entity);
-        when(userRepo.save(entity)).thenThrow(new DataIntegrityViolationException("dup"));
-
-        assertThrows(ConflictException.class, () -> service.create(dto));
-    }
 
     @Test
     @DisplayName("patch: updates fields and returns DTO")

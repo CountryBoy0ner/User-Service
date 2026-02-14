@@ -8,19 +8,20 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
-    public UserDto create(UserDto dto);
+    UserDto create(UserDto dto);
 
-    public UserDto patch(Long id, UserDto patch);
+    UserDto patch(Long id, UserDto patch);
 
-    public void delete(Long id);
+    void delete(Long id);
 
-    public void deleteByEmail(String email);
+    void deleteByEmail(String email);
 
-    public UserDto get(Long id);
+    UserDto get(Long id);
 
-    public Page<UserDto> getAll(Pageable pageable);
+    Page<UserDto> getAll(Pageable pageable);
 
-    public UserDto getByEmail(String email);
+    UserDto getByEmail(String email);
 
+    UserDto getMe(Long id);
 }
 
