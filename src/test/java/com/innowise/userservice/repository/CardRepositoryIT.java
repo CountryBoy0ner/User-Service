@@ -8,10 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,19 +23,32 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
 
+@Testcontainers
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(ContainersConfig.class)
 @AutoConfigureTestDatabase(replace = NONE)
 class CardRepositoryIT {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("user_service")
+            .withUsername("postgres")
+            .withPassword("123");
+
+    @DynamicPropertySource
+    static void registerPgProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
     @Autowired
     private CardRepository cardRepository;
 
     @Autowired
     private UserRepository userRepository;
-    private static long idCounter = 1;
 
+    private static long idCounter = 1;
 
     private User mkUser(String email) {
         User u = new User();
@@ -48,7 +65,7 @@ class CardRepositoryIT {
         c.setNumber(number);
         c.setHolder(holder);
         c.setExpirationDate(exp);
-        c.setUser(owner); // @ManyToOne
+        c.setUser(owner);
         return c;
     }
 
@@ -106,7 +123,7 @@ class CardRepositoryIT {
         int affected = cardRepository.updateCardInfo(
                 saved.getId(),
                 "New Holder",
-                LocalDate.of(2035, 5, 31).toString() // "2035-05-31"
+                LocalDate.of(2035, 5, 31).toString()
         );
         assertEquals(1, affected);
 
@@ -128,7 +145,6 @@ class CardRepositoryIT {
         long zero = cardRepository.deleteByNumber("0000");
         assertEquals(0L, zero);
     }
-
 
     private synchronized long generateTestId() {
         return idCounter++;
