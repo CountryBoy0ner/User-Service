@@ -33,6 +33,8 @@ jobs:
     name: Build + Unit/Integration tests
     runs-on: ubuntu-latest
 
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: true
 
     steps:
       - name: Checkout
@@ -44,11 +46,6 @@ jobs:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
-
-      - name: Verify Docker availability
-        run: |
-          docker version
-          docker info
 
       - name: Make mvnw executable
         run: chmod +x mvnw
