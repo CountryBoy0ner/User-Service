@@ -25,35 +25,16 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SERVICE_DIR: .
   JAVA_VERSION: "17"
 
 jobs:
+
   test:
     name: Build + Unit/Integration tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.SERVICE_DIR }}
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        ports: [ "5432:5432" ]
-        env:
-          POSTGRES_DB: user_service
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: 123
-        options: >-
-          --health-cmd="pg_isready -U postgres -d user_service"
-          --health-interval=10s --health-timeout=5s --health-retries=10
-
-      redis:
-        image: redis:7-alpine
-        ports: [ "6379:6379" ]
-        options: >-
-          --health-cmd="redis-cli ping || exit 1"
-          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DOCKER_HOST: unix:///var/run/docker.sock
 
     steps:
       - name: Checkout
@@ -66,12 +47,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
-      - name: Debug workspace
+      - name: Verify Docker availability
         run: |
-          pwd
-          ls -la
-
-
+          docker version
+          docker info
 
       - name: Make mvnw executable
         run: chmod +x mvnw
@@ -81,18 +60,7 @@ jobs:
           java -version
           ./mvnw -v
 
-      - name: Wait for Postgres & Redis
-        run: |
-          for i in {1..60}; do (echo > /dev/tcp/127.0.0.1/5432) && break; echo "waiting for postgres..."; sleep 2; done
-          for i in {1..60}; do (echo > /dev/tcp/127.0.0.1/6379) && break; echo "waiting for redis..."; sleep 2; done
-
-      - name: Tests (unit + integration)
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/user_service
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: 123
-          SPRING_DATA_REDIS_HOST: localhost
-          SPRING_DATA_REDIS_PORT: "6379"
+      - name: Run tests (unit + integration)
         run: ./mvnw -B -ntp verify
 
       - name: Upload test reports
@@ -101,9 +69,10 @@ jobs:
         with:
           name: user-service-test-reports
           path: |
-            ${{ env.SERVICE_DIR }}/target/surefire-reports/**
-            ${{ env.SERVICE_DIR }}/target/failsafe-reports/**
+            target/surefire-reports/**
+            target/failsafe-reports/**
           if-no-files-found: warn
+
 
   docker-build-pr:
     name: Docker build (PR only, no push)
@@ -115,17 +84,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ env.SERVICE_DIR }}
-          file: ./${{ env.SERVICE_DIR }}/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
 
   docker-image:
     name: Build & Push image to GHCR
@@ -137,7 +107,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Compute image name (lowercase)
@@ -163,8 +133,8 @@ jobs:
       - name: Build & push image
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ env.SERVICE_DIR }}
-          file: ./${{ env.SERVICE_DIR }}/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
