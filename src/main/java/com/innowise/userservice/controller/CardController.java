@@ -26,7 +26,6 @@ public class CardController {
     private final CardService cardService;
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CardDto> create(
             @Validated(ValidationGroups.OnCreate.class) @RequestBody CardDto dto,
             @RequestHeader("X-User-Id") Long currentUserId
@@ -39,7 +38,6 @@ public class CardController {
                 .body(created);
     }
 
-    // Админские методы с @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CardDto> getById(@PathVariable Long id) {
